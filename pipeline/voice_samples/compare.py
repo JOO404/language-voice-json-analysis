@@ -6,11 +6,11 @@ import argparse
 from collections import defaultdict
 from pathlib import Path
 import statistics
-import numpy as np
-from analyze import read, write, csv_write
+from pipeline.common import read, write, csv_write
 
 
 def summarize(words):
+    import numpy as np
     if not words:return dict(n_words=0,speech_duration=0.,speech_rate_wps=None,f0_mean=None,f0_std=None,rms_mean=None)
     duration=sum(w['duration'] for w in words)
     pitch=[w['f0_mean'] for w in words if w['f0_mean'] is not None]

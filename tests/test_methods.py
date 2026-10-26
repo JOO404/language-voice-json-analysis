@@ -1,8 +1,8 @@
 import unittest,tempfile,json,sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'code/_core'))
-from timing import inspect_word,validate_override
-from intent_rules import detect_intent
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from pipeline.transcript_review._core.timing import inspect_word,validate_override
+from pipeline.interview_analysis._core.intent_rules import detect_intent
 
 class IntentTests(unittest.TestCase):
     def test_documented_expressions(self):

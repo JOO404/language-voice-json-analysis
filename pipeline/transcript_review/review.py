@@ -4,7 +4,6 @@ import argparse
 import builtins
 import csv
 import datetime
-import importlib.util
 import json
 import msvcrt
 import os
@@ -14,9 +13,7 @@ import winsound
 
 CODE_DIR=Path(__file__).resolve().parent
 BASE=CODE_DIR
-spec=importlib.util.spec_from_file_location('original_annotator',CODE_DIR/'_core/annotate_words.py')
-legacy=importlib.util.module_from_spec(spec)
-spec.loader.exec_module(legacy)
+from ._core import annotate_words as legacy
 legacy.DATA_DIR=BASE/'data/formatted'
 legacy.OUTPUT_DIR=BASE/'data/cleaned'
 legacy.PROGRESS_CSV=BASE/'cleanup_progress.csv'

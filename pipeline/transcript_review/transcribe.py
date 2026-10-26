@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import re
 import site
-from analyze import read, write
+from pipeline.common import read, write
 
 
 def norm(text):

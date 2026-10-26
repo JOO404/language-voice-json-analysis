@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-JSON 정리 + 플래그 통합 도구 (v3 - 매핑 기반)
+단어 검수 및 플래그 처리 내부 코드
 =============================================
 처리 종류:
   - 삭제      : 인터뷰어/환각/틀린 어노테이션
@@ -8,14 +8,12 @@ JSON 정리 + 플래그 통합 도구 (v3 - 매핑 기반)
   - bad_text  : 외국어 오전사 등 (텍스트 분석 시 제외)
   - 파일 전체 : text_reliable=false
 
-영상 연결: build_video_map.py로 만든 video_map.csv를 읽어서 p 키로 재생.
-           (런타임 매칭 안 함 - 미리 만든 매핑만 사용)
+영상 연결: 프로젝트의 video_map.csv를 사용합니다.
+실행 도구에서 p는 음성 다시 듣기, v는 연결된 영상 열기입니다.
 
 원본(data/formatted)은 절대 수정 안 함. 결과는 data/cleaned 에만.
 
-사용:
-  1) python build_video_map.py     (먼저 매핑 생성, 한 번만)
-  2) python annotate_words.py
+실행: python run.py review listen --project project
 """
 
 import json
@@ -30,7 +28,7 @@ from pathlib import Path
 DATA_DIR = Path("data/formatted")
 OUTPUT_DIR = Path("data/cleaned")
 PROGRESS_CSV = Path("cleanup_progress.csv")
-MAP_CSV = Path("video_map.csv")     # build_video_map.py가 만든 매핑
+MAP_CSV = Path("video_map.csv")     # json,video 열로 구성된 매핑
 
 VIDEO_PLAYER = "vlc"        # "vlc"(배속 지원) 또는 "default"(OS 기본 앱)
 VIDEO_RATE = 1.5            # 재생 배속 (VLC 전용)
@@ -98,7 +96,7 @@ def load_video_map():
 def video_summary():
     vmap = load_video_map()
     if not MAP_CSV.exists():
-        print("  (video_map.csv 없음 — build_video_map.py 먼저 실행하면 p 키로 영상 재생 가능)")
+        print("  (video_map.csv 없음 — 영상 연결은 선택 사항이며 음성은 WAV로 재생합니다.)")
         return
     total = sum(1 for _ in csv.DictReader(open(MAP_CSV, encoding='utf-8')))
     print(f"  영상 매핑: 대본 {total}개 중 {len(vmap)}개에 영상 연결됨")

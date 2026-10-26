@@ -4,7 +4,7 @@ Scores are rule evidence, not probabilities. No participant/task-specific labels
 """
 import re,sys
 from pathlib import Path
-import detect_intent as legacy
+from . import detect_intent as legacy
 VERSION='methodology-reconciliation-1'
 AGREE=re.compile(r'(?<![가-힣])동의(?:합니다|해요|해|한다|한다는|하고|할게요|하겠습니다|하는\s*(?:편|것))(?=[\s.!?,]|$)')
 DISAGREE=re.compile(r'동의\s*(?:하지\s*(?:않|못)|할\s*수\s*없|안\s*|못\s*)|(?:안|못)\s*동의')

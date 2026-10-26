@@ -3,7 +3,7 @@
 KOTE 한국어 라벨 → 영어 라벨 일괄 변환
 =====================================
 이미 만들어진 data/emotion/*.json 과 emotion_summary.csv 를
-공식 영어 라벨로 변환. 외국인 사수님께 드릴 수 있는 형태로.
+공식 영어 라벨로 변환합니다.
 
 매핑은 KOTE 원논문 (arxiv 2205.05300) Appendix A "Emotion Clusters" 의
 공식 영어 표기를 그대로 사용.

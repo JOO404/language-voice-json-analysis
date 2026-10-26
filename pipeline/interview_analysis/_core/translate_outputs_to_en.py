@@ -3,7 +3,7 @@
 분석 결과 한국어 메타 정보 → 영어 일괄 변환
 =============================================
 이미 만들어진 출력 파일들의 한국어 메타 정보를 영어로 변환.
-사수님(외국인)께 드릴 수 있는 영문 산출물 생성.
+분석 결과의 영문 메타데이터를 생성합니다.
 
 원본 한국어판은 보존, 영문판은 별도로 생성:
   prosody_qc_report.csv   → prosody_qc_report_en.csv
@@ -224,7 +224,7 @@ def main():
     print("  완료")
     print("=" * 60)
     print()
-    print("사수님께 드릴 영문 산출물 정리:")
+    print("영문 산출물:")
     print()
     print("📊 CSV 표 (Excel에서 한글 안 깨짐)")
     print("    personality_profiles.csv       BAR 점수 + Social Style (전부 영어)")
@@ -244,8 +244,7 @@ def main():
     print("    prosody_word_summary.csv 의 word_text 컬럼")
     print("    data/cleaned/*.json 의 text 필드")
     print("    영문 signal 안의 인용된 한국어 어미·표지 (예: 'starting token: 네')")
-    print("    → 사수님께 \"이건 한국어 어미/표지 자체이며 번역하면 의미가 사라짐\"")
-    print("       이라고 보고서에 명시하면 자연스러움")
+    print("    한국어 어미와 표지는 분석 근거이므로 원문을 유지합니다.")
     return 0
 
 

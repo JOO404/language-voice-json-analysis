@@ -5,33 +5,11 @@ Does not transcribe, align, annotate, assign research groups or fit BAR norms.
 """
 import argparse
 import csv
-import importlib
-import json
 import os
 from pathlib import Path
-import sys
 import tempfile
 
-PACKAGE = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PACKAGE / 'code/_core'))
-
-
-def read(path):
-    return json.loads(path.read_text(encoding='utf-8-sig'))
-
-
-def write(path, value):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding='utf-8')
-
-
-def csv_write(path, rows):
-    if not rows:
-        return
-    with path.open('w', newline='', encoding='utf-8-sig') as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
+from pipeline.common import read, write, csv_write
 
 
 def prepare_inputs(project, timing_mode, cleaned=None):
@@ -69,8 +47,8 @@ def prepare_inputs(project, timing_mode, cleaned=None):
 
 def run_prosody(project, out, entries, timing_mode):
     import librosa
-    import analyze_prosody as algorithm
-    import qc_prosody as qc
+    from ._core import analyze_prosody as algorithm
+    from ._core import qc_prosody as qc
     dest = out / 'data/prosody'
     dest.mkdir(parents=True, exist_ok=True)
     qc.PROSODY_DIR = dest
@@ -141,13 +119,14 @@ def run_prosody(project, out, entries, timing_mode):
 
 
 def run_language(out, entries, stages, intent_version, emotion_model):
-    intent = importlib.import_module('intent_rules' if intent_version == 'revised' else 'detect_intent')
+    from ._core import intent_rules, detect_intent
+    intent = intent_rules if intent_version == 'revised' else detect_intent
     pipe = None
     if 'emotion' in stages:
         os.environ['HF_HUB_OFFLINE'] = '1'
         os.environ['TRANSFORMERS_OFFLINE'] = '1'
         import torch
-        import analyze_emotion
+        from ._core import analyze_emotion
         torch.set_num_threads(4)
         analyze_emotion.MODEL_ID = str(emotion_model)
         pipe = analyze_emotion.load_pipeline()
@@ -191,7 +170,7 @@ def run_language(out, entries, stages, intent_version, emotion_model):
     csv_write(out / 'emotion_summary.csv', emotion_rows)
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--project', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
@@ -200,7 +179,7 @@ def main():
     parser.add_argument('--timing-mode', choices=['positive', 'eligible'], default='positive')
     parser.set_defaults(intent_version='revised')
     parser.add_argument('--emotion-model', type=Path, help='Local KOTE model folder; no downloads are performed.')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     stages = set(args.stages.split(','))
     if not stages or not stages <= {'prosody', 'intent', 'emotion'}:
         parser.error('stages must be comma-separated prosody,intent,emotion')

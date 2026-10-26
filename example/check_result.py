@@ -1,7 +1,7 @@
 """Compare the generated tone measurements with the recorded synthetic-fixture result."""
 import argparse
 from pathlib import Path
-from analyze import read
+from pipeline.common import read
 
 
 def main():

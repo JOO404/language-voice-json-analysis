@@ -1,71 +1,73 @@
-# Language, Voice & Interview JSON Analysis
+# Interview & Voice Analysis
 
-Final research code for Korean interview transcription, word-level review,
-text analysis and acoustic voice analysis.
+Final code for Korean interview transcription, manual review, language analysis
+and acoustic comparison of voice samples.
 
-[한국어 안내](README.ko.md) · [Run guide](docs/RUN_GUIDE_EN.txt) · [First-time GitHub guide](docs/FIRST_GITHUB_KO.md)
+[한국어](README.ko.md) · [Setup and commands](docs/RUN_GUIDE_EN.txt)
 
-## Analysis stages
+## Three workflows
 
-| Stage | Method | Entry point |
-| --- | --- | --- |
-| Audio preparation | FFmpeg, 16-kHz mono PCM16; supplied clip boundaries | `code/prepare_audio.py` |
-| Transcription | Local faster-whisper large-v3-turbo, Korean | `code/transcribe.py` |
-| Word alignment | WhisperX and Korean wav2vec2 alignment model | `code/align.py` |
-| Transcript review | Windows terminal; replay, bad-text/overlap flags | `code/review.py` |
-| Timing quality | Duration and Silero VAD speech-coverage screening | `code/timing_qc.py` |
-| Text emotion / intent | KOTE 44 labels and Korean intent rules | `code/analyze.py` |
-| Voice acoustics | librosa pYIN F0, RMS, word-duration speech rate and QC | `code/analyze.py` |
-| Interview indicators | BAR aggregation with the fixed study reference | `code/bar_profile.py` |
-| Voice comparison | Per-clip/voice summaries and timing sensitivity | `code/compare_voices.py` |
-| JSON validation | Fields, finite timestamps and interval checks | `code/validate_json.py` |
+| Task | Code folder | What it does | Outputs |
+| --- | --- | --- | --- |
+| **1. Prepare and review transcripts** | [transcript_review](pipeline/transcript_review) | Extract audio, transcribe, align word times, replay audio or linked video, mark BAD/overlap, screen timing | Reviewed and timing-qualified word JSON |
+| **2. Analyze interviews** | [interview_analysis](pipeline/interview_analysis) | librosa acoustic features, KOTE text emotion, rule-based intent, participant BAR summaries | Per-clip JSON and summary CSVs |
+| **3. Compare voice samples** | [voice_samples](pipeline/voice_samples) | Apply the same acoustic method to supplied-script voices; compare clips/voices, wording checks and timing sensitivity | Per-clip JSON and voice comparison CSVs |
 
-## Start here
+Use **`run.py`** for all three workflows. Files in `_core` are internal calculation
+helpers; they are not extra steps to run. Voice analysis reuses the interview
+acoustic implementation.
 
-Read the [run guide](docs/RUN_GUIDE_EN.txt) for environment setup, model paths,
-input layouts and separate interview / supplied-script workflows.
-Python 3.12 was used. Analysis and ASR use separate environments.
+```console
+python run.py review --help
+python run.py interview --help
+python run.py voices --help
+```
 
-The method and input tests require only Python:
+The [run guide](docs/RUN_GUIDE_EN.txt) gives the complete sequence, dependencies,
+model paths, input layout and output definitions. Python 3.12 was used; ASR and
+analysis use separate environments.
+
+## Transcript review
+
+```console
+python run.py review listen --project project
+```
+
+On Windows: **Enter** saves and plays the next answer; **p** replays;
+**4b** marks word 4 as bad text; **4o** marks overlap; **B** marks the whole
+transcript unreliable; **v** opens a linked video; **q** exits.
+Type each command and press Enter. Optional video links use `project/video_map.csv`.
+Audio/video playback belongs to this review workflow.
+
+Existing word-level JSON can enter at validation/review. Newly received recordings
+first require audio preparation, transcription and alignment. Clip boundaries
+and question IDs are supplied inputs; the code does not identify them automatically.
+
+## Supporting files
+
+- `config/`: recorded model metadata, measurement settings and fixed BAR reference.
+- `requirements/`: recorded package versions; see the run guide for installation limits.
+- `tests/`, `example/`: method checks and a fictional JSON/tone fixture.
 
 ```console
 python -m unittest discover -s tests -v
-```
-
-An optional acoustic smoke test uses a locally generated tone, with **no recorded
-speech or participant data**. Install the analysis dependencies first:
-
-```console
 python example/make_demo.py
-python code/analyze.py --project example/project --out demo_output --stages prosody
-python code/check_example.py --result demo_output
+python run.py voices analyze --project example/project --out demo_output
+python -m example.check_result --result demo_output
 ```
 
-The tone and its fictional word intervals test numerical processing only.
-They do not test transcription, speech recognition accuracy or vocal realism.
+The acoustic example requires the analysis environment. It checks numerical
+processing using a generated tone, not speech-recognition accuracy.
 
-## Repository layout
+## Measurement notes
 
-```text
-code/          Analysis entry points and calculation helpers
-config/        Model metadata, measurement settings and fixed BAR reference
-requirements/  Recorded dependency versions
-tests/         Method and JSON-input checks
-example/       Fictional JSON fixture and deterministic tone generator
-docs/          Detailed run guide and GitHub instructions
-```
-
-## Interpretation
-
-- KOTE classifies text emotion; it is not vocal emotion recognition.
-- Intent scores are rule evidence, not probabilities.
-- F0 and RMS clip summaries average word-level measurements. Speech rate uses
-  summed word durations rather than the full elapsed clip duration.
-- BAR scores are auxiliary behavioural indicators, not validated personality
+- KOTE classifies **text emotion**. Intent scores are rule evidence, not probabilities.
+- F0 and RMS clip summaries average word measurements. Speech rate uses summed
+  word durations, not total elapsed clip duration.
+- BAR provides auxiliary behavioural indicators, not validated personality
   diagnoses or the human-assigned Group A/B labels.
-- Compare synthetic voice candidates within the same group and question;
-  Group A and Group B use different scripts.
+- Compare voice candidates within the same group and question; A and B use
+  different scripts.
 
-Recordings, real transcripts, participant tables, analysis datasets, credentials
-and model weights are kept outside this repository. Pre-existing interview JSON
-is ingested as supplied. The local ASR step is used for newly provided recordings.
+This package contains code and settings. Recordings, real transcripts, participant
+tables, individual analysis results and model weights are supplied separately.

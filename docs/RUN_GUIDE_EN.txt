@@ -1,5 +1,12 @@
 RUN GUIDE
 
+Code is grouped by task. Use run.py from the repository root:
+  python run.py review --help       Audio/transcript preparation and BAD/overlap review
+  python run.py interview --help    Interview language, acoustic and BAR analysis
+  python run.py voices --help       Supplied-script voice analysis and comparison
+Folders under pipeline match these three tasks. _core contains calculation
+helpers used by those tasks, not additional workflow steps.
+
 1. Environment
 Use Python 3.12.14. Create separate analysis and ASR environments; do not combine
 the two requirement sets (their Hugging Face dependencies differ).
@@ -16,7 +23,7 @@ These are versions observed on the analysis computer, not a clean-install lock
 verified on every platform. The alignment setup uses WhisperX alignment only;
 it is not a full WhisperX/diarization installation. CPU is the default for the
 ASR entry point; the study ASR used CUDA with int8_float16. Hardware changes can
-change transcription output. FFmpeg must be installed for prepare_audio.py.
+change transcription output. FFmpeg must be installed for review prepare.
 
 Download/cache the following models separately before running:
   ASR: local CTranslate2 large-v3-turbo model.
@@ -36,7 +43,7 @@ Use pseudonymous participant IDs. Keep each voice ID (A1/A2/A3/B1/B2/B3) distinc
 The participant roster and missing-data table are stored separately.
 
 To prepare audio from video/audio clips or reviewed video intervals:
-  python code/prepare_audio.py --jobs jobs.json --project project
+  python run.py review prepare --jobs jobs.json --project project
 jobs.json is an array such as:
   [{"input":"clip.mp4","participant_id":"pr_1","clip_code":"A_01_1"}]
 For a specific interval add "start":12.3,"end":23.4 (seconds). Those values
@@ -50,23 +57,36 @@ Commands below use the appropriate activated environment and local model paths.
 Use a new/empty output folder for each batch; input JSON and WAV stay unchanged.
 
 ASR environment:
-  python code/transcribe.py --project project --out asr_json --model C:/models/large-v3-turbo --device cuda
+  python run.py review transcribe --project project --out asr_json --model C:/models/large-v3-turbo --device cuda
 
 Analysis + alignment environment:
-  python code/align.py --project project --input asr_json --out project/data/formatted --model C:/models/korean_alignment --nltk-data C:/nltk_data
-  python code/review.py --project project
+  python run.py review align --project project --input asr_json --out project/data/formatted --model C:/models/korean_alignment --nltk-data C:/nltk_data
+  python run.py review listen --project project
 
 The review tool runs on Windows. Enter saves and advances with automatic audio
 playback; p replays; 4b marks word 4 as bad transcription; 4o marks overlap;
+v opens an optional linked video;
 4 or 4-8 deletes selected words; B marks the whole text unreliable; q exits.
 Commands are typed then followed by Enter. Review progress is saved locally.
+The WAV replay and optional video opening are part of this review task.
+For v, supply project/video_map.csv with columns json,video; the json field is
+the path relative to data/formatted (Windows example: pr_1\A_01_1.json), and
+video is the absolute path to the corresponding video clip. There is no
+automatic video matching. Interval-based WAV extraction does not create a
+trimmed video; link a matching video clip if video playback is needed.
+
+If word-level interview JSON is already supplied, skip ASR/alignment, place it
+in data/formatted with matching WAV files, then validate and review it:
+  python run.py review validate project/data/formatted
+Optional formatting of already compatible word JSON (not schema conversion):
+  python run.py review format --src project/data/raw --dst project/data/formatted
 
 ASR environment (timing screening uses bundled Silero VAD):
-  python code/timing_qc.py --project project --out eligible_json
+  python run.py review timing --project project --out eligible_json
 
 Analysis environment:
-  python code/analyze.py --project project --cleaned eligible_json --out interview_results --timing-mode eligible --stages prosody,intent,emotion --emotion-model C:/models/kote
-  python code/bar_profile.py --cleaned eligible_json --analysis interview_results --reference config/bar_reference.json --out interview_profiles
+  python run.py interview analyze --project project --cleaned eligible_json --out interview_results --timing-mode eligible --stages prosody,intent,emotion --emotion-model C:/models/kote
+  python run.py interview profile --cleaned eligible_json --analysis interview_results --reference config/bar_reference.json --out interview_profiles
 
 Results: data/prosody, data/intent, data/emotion and summary CSVs; BAR writes
 data/personality and personality_summary.csv. The participant identity is taken
@@ -75,7 +95,7 @@ BAR must use the same reviewed clips, timing eligibility and text-rule settings.
 The saved reference is fixed to the study's 20 reference participants. A new
 cohort is not silently used to refit the reference.
 
-Optional manual timing decisions: timing_qc.py --decisions decisions.json.
+Optional manual timing decisions: add --decisions decisions.json to review timing.
 Keys are "participant/clip.json#word_index". Each value includes source_sha256
 of the cleaned JSON and action exclude/keep/set; set also requires start/end.
 The code rejects stale hashes, invalid intervals and newly overlapping edits.
@@ -83,14 +103,14 @@ The code rejects stale hashes, invalid intervals and newly overlapping edits.
 4. Supplied TTS voice scripts
 Prepare project/data/scripts/<voice_id>/<clip>.json with text and metadata;
 prepare matching WAV files. Use script mode to align the supplied wording:
-  python code/align.py --project project --input project/data/scripts --out project/data/cleaned --model C:/models/korean_alignment --nltk-data C:/nltk_data --mode script
+  python run.py review align --project project --input project/data/scripts --out project/data/cleaned --model C:/models/korean_alignment --nltk-data C:/nltk_data --mode script
 
 ASR environment (independent wording check):
-  python code/transcribe.py --project project --out voice_asr --model C:/models/large-v3-turbo --device cuda --mode voice-check --scripts project/data/scripts
+  python run.py review transcribe --project project --out voice_asr --model C:/models/large-v3-turbo --device cuda --mode voice-check --scripts project/data/scripts
 
 Analysis environment:
-  python code/analyze.py --project project --out voice_results --stages prosody
-  python code/compare_voices.py --analysis voice_results --cleaned project/data/cleaned --asr voice_asr --out voice_comparison
+  python run.py voices analyze --project project --out voice_results
+  python run.py voices compare --analysis voice_results --cleaned project/data/cleaned --asr voice_asr --out voice_comparison
 
 The TTS analysis includes acoustic results, QC, voice/clip summaries, script
 checks and a supplementary >=64-ms timing sensitivity table. It does not infer

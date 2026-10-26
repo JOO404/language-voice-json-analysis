@@ -6,7 +6,7 @@ import argparse
 import math
 from pathlib import Path
 import subprocess
-from analyze import read, write
+from pipeline.common import read, write
 
 
 def component(value):

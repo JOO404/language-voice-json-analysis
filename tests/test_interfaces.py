@@ -5,10 +5,10 @@ import sys
 import unittest
 
 PACKAGE=Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(PACKAGE/'code'))
-from validate_json import check
-from bar_profile import fixed_scores
-from analyze import prepare_inputs
+sys.path.insert(0,str(PACKAGE))
+from pipeline.transcript_review.validate_json import check
+from pipeline.interview_analysis.bar_profile import fixed_scores
+from pipeline.interview_analysis.analyze import prepare_inputs
 
 
 class InputChecks(unittest.TestCase):

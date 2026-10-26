@@ -6,8 +6,8 @@ import argparse
 from collections import defaultdict
 import math
 from pathlib import Path
-from analyze import read, write, csv_write
-import analyze_bar_profile as algorithm
+from pipeline.common import read, write, csv_write
+from ._core import analyze_bar_profile as algorithm
 
 
 def fixed_scores(signals, reference):

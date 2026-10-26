@@ -6,7 +6,7 @@ import argparse
 import math
 import os
 from pathlib import Path
-from analyze import read, write
+from pipeline.common import read, write
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
     import torch
     import soundfile as sf
     from whisperx.alignment import load_align_model, align
-    from alignment import ModelInputNormalization, align_one, valid
+    from ._core.alignment import ModelInputNormalization, align_one, valid
     torch.set_num_threads(4)
     model, meta = load_align_model('ko','cpu',model_name=str(args.model.resolve()),model_cache_only=True)
     model = ModelInputNormalization(model).eval()

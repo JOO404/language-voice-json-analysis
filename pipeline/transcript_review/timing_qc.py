@@ -3,8 +3,8 @@ import argparse
 import hashlib
 from pathlib import Path
 import wave
-from analyze import read, write
-from timing import POLICY, inspect_word, validate_override
+from pipeline.common import read, write
+from ._core.timing import POLICY, inspect_word, validate_override
 
 
 def main():
