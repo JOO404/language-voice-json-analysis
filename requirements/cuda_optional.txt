@@ -1,0 +1,3 @@
+# Windows CUDA libraries observed in the ASR environment; CPU ASR does not need these.
+nvidia-cublas-cu12==12.9.2.10
+nvidia-cudnn-cu12==9.27.0.42

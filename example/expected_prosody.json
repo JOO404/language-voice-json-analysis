@@ -1,0 +1,44 @@
+{
+  "file_summary": {
+    "num_words_analyzed": 2,
+    "num_words_excluded_overlap": 0,
+    "audio_duration_secs": 2.2,
+    "speech_duration": 1.7,
+    "speech_rate_wps": 1.176,
+    "f0_mean": 197.51,
+    "f0_std": 17.36,
+    "rms_mean": 0.10485
+  },
+  "words": [
+    {
+      "index": 0,
+      "text": "예시",
+      "start": 0.1,
+      "end": 0.9,
+      "duration": 0.8,
+      "f0_mean": 180.15,
+      "f0_std": 0.52,
+      "f0_range": 1.04,
+      "f0_slope": -0.88,
+      "rms_mean": 0.1045,
+      "rms_max": 0.10827,
+      "voiced_ratio": 1.0,
+      "n_voiced_frames": 25
+    },
+    {
+      "index": 1,
+      "text": "문장입니다.",
+      "start": 1.1,
+      "end": 2.0,
+      "duration": 0.9,
+      "f0_mean": 214.88,
+      "f0_std": 0.0,
+      "f0_range": 0.0,
+      "f0_slope": 0.0,
+      "rms_mean": 0.1052,
+      "rms_max": 0.10852,
+      "voiced_ratio": 1.0,
+      "n_voiced_frames": 28
+    }
+  ]
+}

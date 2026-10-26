@@ -1,0 +1,5 @@
+# Install on top of analysis.txt with pip --no-deps (alignment module only).
+--extra-index-url https://download.pytorch.org/whl/cpu
+whisperx==3.8.6
+nltk==3.9.2
+torchaudio==2.8.0+cpu

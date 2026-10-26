@@ -1,0 +1,129 @@
+RUN GUIDE
+
+1. Environment
+Use Python 3.12.14. Create separate analysis and ASR environments; do not combine
+the two requirement sets (their Hugging Face dependencies differ).
+
+  python -m venv analysis_env
+  analysis_env\Scripts\python -m pip install -r requirements/analysis.txt
+  python -m venv asr_env
+  asr_env\Scripts\python -m pip install -r requirements/asr.txt
+
+Alignment uses the analysis environment plus these explicitly limited packages:
+  analysis_env\Scripts\python -m pip install --no-deps -r requirements/alignment.txt
+
+These are versions observed on the analysis computer, not a clean-install lock
+verified on every platform. The alignment setup uses WhisperX alignment only;
+it is not a full WhisperX/diarization installation. CPU is the default for the
+ASR entry point; the study ASR used CUDA with int8_float16. Hardware changes can
+change transcription output. FFmpeg must be installed for prepare_audio.py.
+
+Download/cache the following models separately before running:
+  ASR: local CTranslate2 large-v3-turbo model.
+  Alignment: kresnik/wav2vec2-large-xlsr-korean.
+  Emotion: searle-j/kote_for_easygoing_people.
+Recorded revisions and ASR configuration hashes are in config/models.json.
+The ASR model's exact repository revision was not recorded. Alignment also
+requires NLTK punkt_tab resources; pass their local root with --nltk-data.
+All model-loading entry points use local files and perform no model downloads.
+
+2. Input layout
+  project/data/wav/<participant_or_voice_id>/<clip>.wav
+  project/data/formatted/<participant_or_voice_id>/<clip>.json
+  project/data/cleaned/<participant_or_voice_id>/<clip>.json
+WAV: PCM16, 16 kHz, mono. Use the same relative filename at every stage.
+Use pseudonymous participant IDs. Keep each voice ID (A1/A2/A3/B1/B2/B3) distinct.
+The participant roster and missing-data table are stored separately.
+
+To prepare audio from video/audio clips or reviewed video intervals:
+  python code/prepare_audio.py --jobs jobs.json --project project
+jobs.json is an array such as:
+  [{"input":"clip.mp4","participant_id":"pr_1","clip_code":"A_01_1"}]
+For a specific interval add "start":12.3,"end":23.4 (seconds). Those values
+are only syntax examples; supply actual reviewed boundaries. For TTS, use
+voice_id, group, voice_name, question_number and text instead. Supplied text is
+saved under data/scripts. Boundaries and question IDs must be supplied; the
+code does not automatically identify speakers or interview questions.
+
+3. Interview workflow
+Commands below use the appropriate activated environment and local model paths.
+Use a new/empty output folder for each batch; input JSON and WAV stay unchanged.
+
+ASR environment:
+  python code/transcribe.py --project project --out asr_json --model C:/models/large-v3-turbo --device cuda
+
+Analysis + alignment environment:
+  python code/align.py --project project --input asr_json --out project/data/formatted --model C:/models/korean_alignment --nltk-data C:/nltk_data
+  python code/review.py --project project
+
+The review tool runs on Windows. Enter saves and advances with automatic audio
+playback; p replays; 4b marks word 4 as bad transcription; 4o marks overlap;
+4 or 4-8 deletes selected words; B marks the whole text unreliable; q exits.
+Commands are typed then followed by Enter. Review progress is saved locally.
+
+ASR environment (timing screening uses bundled Silero VAD):
+  python code/timing_qc.py --project project --out eligible_json
+
+Analysis environment:
+  python code/analyze.py --project project --cleaned eligible_json --out interview_results --timing-mode eligible --stages prosody,intent,emotion --emotion-model C:/models/kote
+  python code/bar_profile.py --cleaned eligible_json --analysis interview_results --reference config/bar_reference.json --out interview_profiles
+
+Results: data/prosody, data/intent, data/emotion and summary CSVs; BAR writes
+data/personality and personality_summary.csv. The participant identity is taken
+from participant_id when present, otherwise from the parent folder.
+BAR must use the same reviewed clips, timing eligibility and text-rule settings.
+The saved reference is fixed to the study's 20 reference participants. A new
+cohort is not silently used to refit the reference.
+
+Optional manual timing decisions: timing_qc.py --decisions decisions.json.
+Keys are "participant/clip.json#word_index". Each value includes source_sha256
+of the cleaned JSON and action exclude/keep/set; set also requires start/end.
+The code rejects stale hashes, invalid intervals and newly overlapping edits.
+
+4. Supplied TTS voice scripts
+Prepare project/data/scripts/<voice_id>/<clip>.json with text and metadata;
+prepare matching WAV files. Use script mode to align the supplied wording:
+  python code/align.py --project project --input project/data/scripts --out project/data/cleaned --model C:/models/korean_alignment --nltk-data C:/nltk_data --mode script
+
+ASR environment (independent wording check):
+  python code/transcribe.py --project project --out voice_asr --model C:/models/large-v3-turbo --device cuda --mode voice-check --scripts project/data/scripts
+
+Analysis environment:
+  python code/analyze.py --project project --out voice_results --stages prosody
+  python code/compare_voices.py --analysis voice_results --cleaned project/data/cleaned --asr voice_asr --out voice_comparison
+
+The TTS analysis includes acoustic results, QC, voice/clip summaries, script
+checks and a supplementary >=64-ms timing sensitivity table. It does not infer
+emotion, intent or personality from the synthetic voices. Compare candidates
+within the same group and question: Group A and Group B speak different texts.
+
+5. JSON fields and interpretation
+cleaned: text, words[], audio_duration_secs, text_reliable; optional IDs.
+word: text, type (word/spacing), start/end in seconds, flag (overlap/bad_text/"").
+Alignment adds alignment_score, timing_source and timing_review_required.
+ASR probability, alignment score and original provider logprob are different
+fields and must not be interpreted as interchangeable confidence measures.
+Timing QC adds acoustic_eligible and acoustic_exclusion_reasons per word.
+Overlap is excluded from prosody; bad_text can retain acoustic measurements.
+text_reliable=false skips text emotion and intent but does not disable audio.
+
+prosody: person, code, fmin_hz/fmax_hz, words[], file_summary, qc_status,
+prosody_reliable/prosody_usable. Failed/no-word clips retain skip_reason.
+emotion: top_emotions, all_scores (sigmoid outputs), optional skip_reason.
+intent: primary_intent, confidence, speech_mode, scores, signals, used_prosody.
+Intent scores are rule evidence, not probabilities. Final rules use pitch as
+supporting evidence; pitch alone cannot overturn the lexical decision.
+BAR: aggregated behavioural signals, bar_scores_1_5 and social_style.
+
+Numeric definitions: librosa 0.11.0; frame 2048; hop 512; 16-kHz mono;
+pYIN 65–350 Hz, then 80–300 Hz for flagged clips. No gain normalization.
+Clip F0 mean is the unweighted mean of word F0 means; clip F0 SD is the SD of
+those word means. Clip RMS is the unweighted mean of word RMS values. Rate is
+word count / summed word durations, not count / full elapsed clip duration.
+The final interview timing filter excludes <64-ms intervals and long intervals
+with low VAD speech coverage. These are measurement screening rules, not proof
+of a transcription error. TTS primary results retain positive word durations;
+the >=64-ms result is supplementary. ASR similarity >=.95 is a screening rule,
+not human listening. KOTE is text emotion classification, not vocal emotion.
+BAR outputs are auxiliary automated indicators, not validated personality
+diagnoses or the human-assigned research Group A/B labels. RMS is not LUFS.

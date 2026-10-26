@@ -1,0 +1,25 @@
+{
+  "python": "3.12.14",
+  "packages": {
+    "librosa": "0.11.0",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "soundfile": "0.14.0"
+  },
+  "sample_rate": 16000,
+  "channels": 1,
+  "frame_length": 2048,
+  "hop_length": 512,
+  "first_f0_range": [
+    65,
+    350
+  ],
+  "flagged_second_f0_range": [
+    80,
+    300
+  ],
+  "signal_gain_normalization": false,
+  "word_timing": "WhisperX forced alignment on the supplied scripts, independently cross-checked by faster-whisper",
+  "numeric_analysis_code_modified": false,
+  "speaker_metadata_override": "Use A1,A2,A3,B1,B2,B3 rather than the legacy numeric-folder parser."
+}

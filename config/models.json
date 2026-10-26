@@ -1,0 +1,31 @@
+{
+  "emotion": {
+    "model_id": "searle-j/kote_for_easygoing_people",
+    "revision": "0d493bc0cbd30923751a1ae7aa34ccfbee08b88d",
+    "files": [
+      ".gitattributes",
+      "README.md",
+      "config.json",
+      "pytorch_model.bin",
+      "special_tokens_map.json",
+      "tokenizer.json",
+      "tokenizer_config.json",
+      "vocab.txt"
+    ]
+  },
+  "alignment": {
+    "repository": "kresnik/wav2vec2-large-xlsr-korean",
+    "revision": "629c9a3501c10ba128bf3fa1eebb12af3be03f61"
+  },
+  "transcription": {
+    "engine": "faster-whisper",
+    "model_directory_name": "large-v3-turbo",
+    "revision": "not recorded in available model provenance",
+    "small_file_sha256": {
+      "config.json": "b0253ea6c0d3bea6b1e19e91a02acfd3b53f4467362efcb5a3e6b16c9b3a9b7e",
+      "preprocessor_config.json": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711",
+      "tokenizer.json": "297b13372ac43916285644fb9687add3cc62ee2a1adb60da3dc25cc94c1871fd",
+      "vocabulary.json": "c69260f2ab26d659b7c398f9a2b2b48ed0df16c3b47d7326782fd9cba71690c1"
+    }
+  }
+}

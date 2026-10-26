@@ -1,0 +1,69 @@
+{
+  "method": "same_original_20_participants_recomputed_with_v3",
+  "participants": [
+    "pr_3",
+    "pr_5",
+    "pr_6",
+    "pr_7",
+    "pr_8",
+    "pr_9",
+    "pr_10",
+    "pr_11",
+    "pr_12",
+    "pr_13",
+    "pr_14",
+    "pr_15",
+    "pr_16",
+    "pr_17",
+    "pr_18",
+    "pr_19",
+    "pr_20",
+    "pr_21",
+    "pr_22",
+    "pr_23"
+  ],
+  "dimensions": {
+    "directness": {
+      "mean": 0.1614795374671608,
+      "sample_std": 0.08503658483736884,
+      "n": 20
+    },
+    "warmth": {
+      "mean": 0.3729909248566818,
+      "sample_std": 0.04655955547054101,
+      "n": 20
+    },
+    "dominance": {
+      "mean": 0.7043634027888891,
+      "sample_std": 0.22787527423188886,
+      "n": 20
+    },
+    "responsiveness": {
+      "mean": 0.02335646432486038,
+      "sample_std": 0.015013468477827994,
+      "n": 20
+    },
+    "expressiveness": {
+      "mean": 0.6037793879707163,
+      "sample_std": 0.16162233671707443,
+      "n": 20
+    },
+    "conflict_avoidance": {
+      "mean": -0.18499268454729717,
+      "sample_std": 0.071965388895017,
+      "n": 20
+    },
+    "sarcasm": {
+      "mean": 0.31254000136141413,
+      "sample_std": 0.04118751023297859,
+      "n": 20
+    },
+    "social_distance": {
+      "mean": 0.4831270262591123,
+      "sample_std": 0.32649118566991014,
+      "n": 20
+    }
+  },
+  "formula": "round(clip(3+(raw-mean)/sample_std,1,5),2)",
+  "note": "Same reference participants, recomputed means/SD after the uniform rule changes. Neither new participant enters the reference."
+}
